@@ -36,15 +36,26 @@ def fileExport(data, fname, header, ow=False):
     if (not ow) and os.path.isfile(fname):
         raise FileExistsError(
             '{} exists and overwrite is {}!'.format(fname, ow))
-    s = ['{:.4g}']*data.shape[0]
+    # check if data is numpy array without loading numpy
+    if 'numpy' in str(type(data)):
+        s = ['{:.4g}']*data.shape[0]
+    elif isinstance(data, (list, tuple)):
+        s = ['{:.4g}']*len(data)
+    else:
+        raise ValueError(
+            'Data type of input data unknown: {}'.format(type(data)))
     s.append('\n')
     s = ' '.join(s)
     header.append('\n')
     with open(fname, 'w') as o:
         if header:
             o.write(' '.join(header))
-        for d in data.T:
-            o.write(s.format(*d))
+        if 'numpy' in str(type(data)):
+            for line in data.T:
+                o.write(s.format(*line))
+        else:
+            for line in zip(*data):
+                o.write(s.format(*line))
 
 
 def terminalExport(X, Y, Z=None):
