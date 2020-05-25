@@ -32,30 +32,50 @@ def hist2pgf(counts, edges):
     return x, y
 
 
+def _fileExportNumpy(data, fname, header):
+    s = ['{:.4g}']*data.shape[0]
+    s.append('\n')
+    s = ' '.join(s)
+    with open(fname, 'w') as o:
+        for line in data.T:
+            o.write(s.format(*line))
+
+
+def _fileExportList(data, fname, header):
+    s = ['{:.4g}']*len(data)
+    s.append('\n')
+    s = ' '.join(s)
+    with open(fname, 'w') as o:
+        for line in zip(*data):
+            o.write(s.format(*line))
+
+
+def _fileExportHeader(header):
+    if isinstance(header, str):
+        header = header.strip()
+        header += '\n'
+    elif isinstance(header, (list, tuple)):
+        header.append('\n')
+        header = ' '.join(header)
+    else:
+        raise ValueError(
+            'Data type of header unknown: {}'.format(type(data)))
+    return header
+
+
 def fileExport(data, fname, header, ow=False):
     if (not ow) and os.path.isfile(fname):
         raise FileExistsError(
             '{} exists and overwrite is {}!'.format(fname, ow))
+    header = _fileExportHeader(header)
     # check if data is numpy array without loading numpy
     if 'numpy' in str(type(data)):
-        s = ['{:.4g}']*data.shape[0]
+        _fileExportNumpy(data, fname, header,)
     elif isinstance(data, (list, tuple)):
-        s = ['{:.4g}']*len(data)
+        _fileExportList(data, fname, header)
     else:
         raise ValueError(
             'Data type of input data unknown: {}'.format(type(data)))
-    s.append('\n')
-    s = ' '.join(s)
-    header.append('\n')
-    with open(fname, 'w') as o:
-        if header:
-            o.write(' '.join(header))
-        if 'numpy' in str(type(data)):
-            for line in data.T:
-                o.write(s.format(*line))
-        else:
-            for line in zip(*data):
-                o.write(s.format(*line))
 
 
 def terminalExport(X, Y, Z=None):
