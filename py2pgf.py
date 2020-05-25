@@ -3,17 +3,36 @@ import os
 import itertools as it
 
 
-def mat2pgf(mat):
-    ret = []
-    flag = True
-    for index in it.product(*[range(s) for s in mat.shape]):
-        if flag:
-            ret = [[] for _ in range(len(index)+1)]
-            flag = False
-        for i in range(len(index)):
-            ret[i].append(index[i])
-        ret[-1].append(mat[index])
-    return ret
+# def mat2pgf(mat):
+#     ret = []
+#     flag = True
+#     for index in it.product(*[range(s) for s in mat.shape]):
+#         if flag:
+#             ret = [[] for _ in range(len(index)+1)]
+#             flag = False
+#         for i in range(len(index)):
+#             ret[i].append(index[i])
+#         ret[-1].append(mat[index])
+#     return ret
+
+
+def fileExportMat(mat, fname, lx=None, ly=None, ow=False):
+    if (not ow) and os.path.isfile(fname):
+        raise FileExistsError(
+            '{} exists and overwrite is {}!'.format(fname, ow))
+    if lx is not None:
+        if len(lx) != mat.shape[0]:
+            raise ValueError('len(lx) not equal to mat.shape[0]')
+    if ly is not None:
+        if len(ly) != mat.shape[1]:
+            raise ValueError('len(ly) not equal to mat.shape[1]')
+    with open(fname, 'w') as o:
+        for iy in range(mat.shape[1]):
+            y = iy if ly is None else ly[iy]
+            for ix in range(mat.shape[0]):
+                x = ix if lx is None else lx[ix]
+                o.write('{:.4g} {:.4g} {:.4g}\n'.format(x, y, mat[ix, iy]))
+            o.write('\n')
 
 
 def hist2pgf(counts, edges):
