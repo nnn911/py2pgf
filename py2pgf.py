@@ -58,7 +58,7 @@ def _fileExportNumpy(data, fname, header):
     with open(fname, 'w') as o:
         o.write(header)
         for line in data.T:
-            o.write(s.format(*line))
+            o.write(s.format(*[float(l) for l in line]))
 
 
 def _fileExportList(data, fname, header):
@@ -68,7 +68,7 @@ def _fileExportList(data, fname, header):
     with open(fname, 'w') as o:
         o.write(header)
         for line in zip(*data):
-            o.write(s.format(*line))
+            o.write(s.format(*[float(l) for l in line]))
 
 
 def _fileExportHeader(header):
