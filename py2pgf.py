@@ -99,14 +99,41 @@ def fileExport(data, fname, header, ow=False):
             'Data type of input data unknown: {}'.format(type(data)))
 
 
-def terminalExport(X, Y, Z=None):
-    if Z:
+def terminalExport(X, Y, Z=None, Xerr=None, Yerr=None, Zerr=None):
+    err = True if ((Xerr is not None) or (Yerr is not None)
+                   or (Zerr is not None)) else False
+    if err:
+        Xerr = [0]*len(X) if Xerr is None else Xerr
+        Yerr = [0]*len(Y) if Yerr is None else Yerr
+        Zerr = [0]*len(Z) if (Z and (Zerr is None)) else Zerr
+    if Z and not err:
         if (len(X) != len(Y)) or (len(X) != len(Z)):
             raise ValueError('X, Y, Z are not of the same length!')
         for x, y, z in zip(X, Y, Z):
             print('({:.4g},{:.4g},{:.4g})'.format(x, y, z))
-    else:
+    elif Z and err:
+        for x, y, z, xe, ye, ze in zip(X, Y, Z, Xerr, Yerr, Zerr):
+            print('({:.4g},{:.4g},{:.4g}) +- ({:.4g},{:.4g},{:.4g})'.format(
+                x, y, z, xe, ye, ze))
+    elif not Z and not err:
         if len(X) != len(Y):
             raise ValueError('X and Y are not of the same length!')
         for x, y in zip(X, Y):
             print('({:.4g},{:.4g})'.format(x, y))
+    elif not Z and err:
+        for x, y, xe, ye in zip(X, Y, Xerr, Yerr):
+            print('({:.4g},{:.4g}) +- ({:.4g},{:.4g})'.format(x, y, xe, ye))
+
+
+def meshgrid2Surface(X, Y, Z, fname, ow=False):
+    if (X.shape != Y.shape) or (X.shape != Z.shape):
+        raise ValueError('X, Y, and Z are not of the same shape!')
+    if (not ow) and os.path.isfile(fname):
+        raise FileExistsError(
+            '{} exists and overwrite is {}!'.format(fname, ow))
+    with open(fname, 'w') as f:
+        for i in range(X.shape[0]):
+            for j in range(X.shape[1]):
+                f.write('{:.4f} {:.4f} {:.4f}\n'.format(
+                    X[0, j], Y[i, 0], Z[i, j]))
+            f.write('\n')
